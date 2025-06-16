@@ -119,3 +119,10 @@ A full-stack application that provides automated code review using Google's Gemi
     │   └── services/
     └── server.js
 ```
+## 🌐 Live Demo
+Try out the AI Code Review Platform here:
+🔗 https://code-review-theta.vercel.app/
+
+## ⚠️ Note:
+This app is hosted on a free-tier server, so the first request may take a few seconds to respond. Please be patient while the backend spins up.
+
