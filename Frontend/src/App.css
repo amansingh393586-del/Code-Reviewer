@@ -1,0 +1,140 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  font-family: Arial, sans-serif;
+  background-color: #121212;
+  color: #fff;
+  overflow-x: hidden; /* Prevents horizontal scrolling */
+}
+
+/* Layout Container */
+main {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  gap: 1rem;
+  padding: 1.5rem;
+  overflow: hidden; /* Prevents unnecessary scrolling */
+}
+
+/* Code Editor & AI Review Sections */
+.left, .right {
+  flex-basis: 50%;
+  padding: 1.5rem;
+  border-radius: 8px;
+  background-color: #1e1e1e;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  overflow: auto; /* Ensures content doesn't overflow vertically */
+  max-height: 100vh; /* Prevents growing beyond viewport height */
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* Code Editor */
+.code {
+  border-radius: 8px;
+  background-color: #0c0c0c;
+  padding: 10px;
+}
+
+/* Buttons */
+button {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.review-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.review-btn:hover {
+  background-color: #45a049;
+}
+
+.review-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.loader {
+  width: 18px;
+  height: 18px;
+  border: 3px solid #ffffff;
+  border-top: 3px solid #8884ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.back-btn {
+  background-color: #ff4747;
+  color: white;
+  display: none; /* Hidden by default */
+}
+
+.back-btn:hover {
+  background-color: #d63c3c;
+}
+
+/* ======= MOBILE VIEW (≤ 768px) ======= */
+@media (max-width: 768px) {
+  main {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .left, .right {
+    width: 95%; /* Increased width for better visibility */
+    min-height: 80vh; /* Increased height for better readability */
+    padding: 2rem; /* More padding for comfortable viewing */
+  }
+
+  /* Hide AI Review initially */
+  main .right {
+    display: none;
+  }
+
+  /* Show only the AI review when in review mode */
+  main.mobile-review-mode .left {
+    display: none;
+  }
+
+  main.mobile-review-mode .right {
+    display: block;
+  }
+
+  /* Show "Back to Editor" button only in mobile review mode */
+  main.mobile-review-mode .back-btn {
+    display: block;
+  }
+}
