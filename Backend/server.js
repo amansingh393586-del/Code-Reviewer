@@ -1,5 +1,7 @@
-require('dotenv').config()
-const app = require('./src/app')
+// require('dotenv').config()
+import 'dotenv/config'
+// const app = require('./src/app')
+import app from './src/app.js'
 
 
 

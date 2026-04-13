@@ -1,90 +1,200 @@
-import { useState, useEffect } from "react";
-import "prismjs";
-import "prismjs/components/";
-import "prismjs/themes/prism-tomorrow.css";
-import Editor from "react-simple-code-editor";
+import { useState, useEffect, useRef } from "react";
+import Editor from "@monaco-editor/react";
 import Markdown from "react-markdown";
 import axios from "axios";
 import "./App.css";
 
 function detectLanguage(code) {
-  if (/^\s*def\s+\w+\s*\(/.test(code)) return "python";
-  if (/^\s*(public|private|protected)?\s*class\s+\w+/.test(code)) return "java";
-  if (/^\s*#include\s*<.*>/.test(code)) return "cpp";
-  if (/^\s*(function\s+\w+|\(\)\s*=>)/.test(code)) return "javascript";
-  return "javascript"; // Default fallback
+  // Python: contains 'def ' or 'import ' and doesn't look like JS
+  if (/\bdef\s+\w+\s*\(/.test(code) || /\bimport\s+\w+/.test(code) && !/\bconst\s+/.test(code)) return "python";
+  
+  // Java: contains class definition with typical modifiers
+  if (/\b(public|private|protected)?\s*class\s+\w+/.test(code)) return "java";
+  
+  // C++: contains #include or std::
+  if (/#include\s*<.*>/.test(code) || /\bstd::/.test(code)) return "cpp";
+  
+  // JavaScript: contains function keyword, arrow functions, or common JS keywords
+  if (/\b(function\s+\w+|const\s+\w+|let\s+\w+|\(\)\s*=>)/.test(code)) return "javascript";
+  
+  return "javascript";
 }
 
-function App() {
-  const [code, setCode] = useState(`//This is a Sample code, paste your code here\n def add_numbers(a, b):\n    return a + b`);
-  const [review, setReview] = useState("");
-  const [showReview, setShowReview] = useState(false); // Only for mobile
-  const [loading, setLoading] = useState(false);
+function calculateHealthScore(review) {
+  if (!review) return 0;
+  if (review.includes("I am an AI system design exclusively")) return 0;
+  
+  const isGood = review.toLowerCase().includes("good code");
+  const isBad = review.toLowerCase().includes("bad code");
+  
+  if (isGood) return 85 + Math.floor(Math.random() * 10);
+  if (isBad) return 15 + Math.floor(Math.random() * 20);
+  return 50;
+}
 
+function getStatusLabel(score, review) {
+  if (!review) return "Pending";
+  if (score >= 80) return "Optimal";
+  if (score >= 50) return "Needs Review";
+  return "Critical Issues";
+}
+
+function getStatusClass(score, review) {
+  if (!review) return "";
+  if (score >= 80) return "status-good";
+  if (score >= 50) return "status-average";
+  return "status-bad";
+}
+
+const languageMap = {
+  python: { ext: "py", icon: "" },
+  javascript: { ext: "js", icon: "" },
+  java: { ext: "java", icon: "" },
+  cpp: { ext: "cpp", icon: "" },
+};
+
+function App() {
+  const [code, setCode] = useState(`// The Architect - Code Reviewer\n// Precision Analysis for Modern Developers\n\ndef add_numbers(a, b):\n    return a + b`);
+  const [review, setReview] = useState("");
+  const [displayReview, setDisplayReview] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [score, setScore] = useState(0);
+  
+  const reviewRef = useRef("");
+  const typingSpeed = 10;
 
   useEffect(() => {
-    Prism.highlightAll();
-  }, [code]);
+    if (review && review !== reviewRef.current) {
+      reviewRef.current = review;
+      setDisplayReview("");
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < review.length) {
+          setDisplayReview((prev) => prev + review[i]);
+          i++;
+        } else {
+          clearInterval(interval);
+        }
+      }, typingSpeed);
+      return () => clearInterval(interval);
+    }
+  }, [review]);
 
   async function reviewCode() {
     try {
       setLoading(true);
       const result = await axios.post("http://localhost:3000/ai/get-review", { code });
       setReview(result.data);
-      setShowReview(true); // Switch to review page (only mobile)
+      setScore(calculateHealthScore(result.data));
     } catch (error) {
-      console.error("Error fetching review:", error);
-      setReview("⚠️ Error: Unable to fetch review.");
-      setShowReview(true);
+      console.error("Error:", error);
+      setReview("⚠️ Error: Connection to Intelligence Service failed.");
+    } finally {
+      setLoading(false);
     }
-    finally {
-    setLoading(false); // Stop loader
   }
-  }
-  return (
-    <main className={showReview ? "mobile-review-mode" : ""}>
-      <div className="left">
-        <h2>Code Editor</h2>
-        <div className="code">
-          <Editor
-            value={code}
-            onValueChange={(code) => setCode(code)}
-            highlight={(code) => {
-              const lang = detectLanguage(code);
-              return Prism.highlight(code, Prism.languages[lang] || Prism.languages.javascript, lang);
-            }}
-            padding={12}
-            style={{
-              fontFamily: '"Fira Code", monospace',
-              fontSize: 16,
-              minHeight: "300px",
-              borderRadius: "8px",
-              backgroundColor: "#0c0c0c",
-              color: "#fff",
-              boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
-            }}
-          />
-        </div>
-        <button className="review-btn" onClick={reviewCode} disabled={loading}>
-          {loading ? (
-            <span className="loader"></span>
-          ) : (
-            "Review Code"
-          )}
-        </button>
-      </div>
 
-      <div className="right">
-        <h2>AI Review</h2>
-        <div className="review-content">
-          <Markdown>{review || "Your AI-generated review will appear here."}</Markdown>
+  const currentLang = detectLanguage(code);
+  const fileInfo = languageMap[currentLang] || { ext: "txt", icon: "" };
+
+  return (
+    <main>
+      <nav className="sidebar">
+        <div className="logo-container">
+          <div className="logo-icon">CR</div>
         </div>
-        <button className="back-btn" onClick={() => setShowReview(false)}>
-          ⬅ Back to Editor
-        </button>
-      </div>
+      </nav>
+
+      <section className="workspace">
+        <header className="header">
+          <div className="tab-container">
+            <div className="tab active">
+              <span>{fileInfo.icon}</span> main.{fileInfo.ext}
+            </div>
+          </div>
+        </header>
+
+        <div className="content-area">
+          <div className="editor-frame">
+            <div className="editor-toolbar">
+              <span>Untitled Project / main.{fileInfo.ext}</span>
+              <span>{currentLang}</span>
+            </div>
+            
+            <div className="code-wrapper">
+              <Editor
+                height="100%"
+                theme="vs-dark"
+                language={currentLang}
+                value={code}
+                onChange={(value) => setCode(value || "")}
+                options={{
+                  fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                  fontSize: 14,
+                  minimap: { enabled: false },
+                  folding: true,
+                  lineNumbers: "on",
+                  roundedSelection: true,
+                  scrollbar: {
+                    vertical: "hidden",
+                    horizontal: "hidden",
+                  },
+                  automaticLayout: true,
+                  tabSize: 4,
+                  autoClosingBrackets: "always",
+                  formatOnPaste: true,
+                  smoothScrolling: true,
+                  cursorBlinking: "smooth",
+                  cursorSmoothCaretAnimation: "on"
+                }}
+              />
+            </div>
+
+            <button className="scan-btn" onClick={reviewCode} disabled={loading}>
+              {loading ? "ANALYZING..." : "✦ SCAN CODE"}
+            </button>
+          </div>
+
+          <aside className="report-frame">
+            <div className="report-header">
+              <h2>Intelligence Report</h2>
+              <div className="health-badge">
+                <span className={`health-value ${getStatusClass(score, review).replace('status-', 'score-')}`}>
+                  {review ? score : "--"}
+                </span>
+                <span className={`health-status ${getStatusClass(score, review)}`}>
+                  {getStatusLabel(score, review)}
+                </span>
+              </div>
+            </div>
+
+            <div className={`report-content ${review && displayReview.length < review.length ? 'typing' : ''}`}>
+              <Markdown>
+                {displayReview || "> Waiting for system scan..."}
+              </Markdown>
+            </div>
+          </aside>
+        </div>
+
+        <footer className="status-bar">
+          <div className="status-left">
+            <span>Ready</span>
+            <span>UTF-8</span>
+          </div>
+          <div className="status-right">
+            <span>Ln 1, Col 1</span>
+            <span>Spaces: 4</span>
+            <span style={{ color: loading ? '#fff' : '#4ade80' }}>
+              ● System Online
+            </span>
+          </div>
+        </footer>
+      </section>
     </main>
   );
 }
 
 export default App;
+
+
+

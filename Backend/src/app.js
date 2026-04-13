@@ -1,10 +1,13 @@
-const express = require('express');
-const aiRoutes = require('./routes/ai.routes')
-const cors = require('cors')
+
+import express from 'express'
+import aiRoutes from './routes/ai.routes.js'
+import cors from 'cors'
 
 const app = express()
 
-app.use(cors())
+app.use(cors({
+  origin: "http://localhost:5173"
+}));
 
 
 app.use(express.json())
@@ -15,4 +18,4 @@ app.get('/', (req, res) => {
 
 app.use('/ai', aiRoutes)
 
-module.exports = app
+export default app

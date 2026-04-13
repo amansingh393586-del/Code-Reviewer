@@ -1,140 +1,300 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html,
-body,
-#root {
-  height: 100%;
-  width: 100%;
-  font-family: Arial, sans-serif;
-  background-color: #121212;
-  color: #fff;
-  overflow-x: hidden; /* Prevents horizontal scrolling */
-}
-
-/* Layout Container */
 main {
-  height: 100%;
-  width: 100%;
   display: flex;
-  gap: 1rem;
-  padding: 1.5rem;
-  overflow: hidden; /* Prevents unnecessary scrolling */
+  height: 100vh;
+  width: 100vw;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
 }
 
-/* Code Editor & AI Review Sections */
-.left, .right {
-  flex-basis: 50%;
-  padding: 1.5rem;
+/* Sidebar */
+.sidebar {
+  width: 50px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+  z-index: 10;
+}
+
+.logo-container {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--accent) 0%, #1e40af 100%);
   border-radius: 8px;
-  background-color: #1e1e1e;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  overflow: auto; /* Ensures content doesn't overflow vertically */
-  max-height: 100vh; /* Prevents growing beyond viewport height */
-}
-
-h2 {
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-/* Code Editor */
-.code {
-  border-radius: 8px;
-  background-color: #0c0c0c;
-  padding: 10px;
-}
-
-/* Buttons */
-button {
-  display: block;
-  width: 100%;
-  margin-top: 1rem;
-  padding: 12px;
-  font-size: 16px;
-  font-weight: bold;
-  border: none;
-  border-radius: 5px;
+  box-shadow: 0 0 20px var(--accent-glow);
+  position: relative;
   cursor: pointer;
-  transition: 0.3s;
+  transition: all 0.3s ease;
 }
 
-.review-btn {
-  background-color: #4caf50;
-  color: white;
+.logo-container::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+  pointer-events: none;
 }
 
-.review-btn:hover {
-  background-color: #45a049;
+.logo-container:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px var(--accent-glow);
 }
 
-.review-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
+.logo-icon {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  color: #fff;
+  font-size: 16px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
-.loader {
-  width: 18px;
-  height: 18px;
-  border: 3px solid #ffffff;
-  border-top: 3px solid #8884ff;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  display: inline-block;
+.nav-item {
+  color: var(--text-dim);
+  font-size: 20px;
+  cursor: pointer;
+  transition: color 0.2s;
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
+.nav-item:hover {
+  color: var(--text-bright);
+}
+
+.nav-item.active {
+  color: var(--accent);
+}
+
+/* Workspace Frame */
+.workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header / Tabs */
+.header {
+  height: 48px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 16px;
+}
+
+.tab-container {
+  display: flex;
+  height: 100%;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  background: var(--surface-raised);
+  border-right: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-dim);
+  cursor: default;
+  gap: 8px;
+}
+
+.tab.active {
+  background: var(--surface);
+  color: var(--text-bright);
+  border-bottom: 2px solid var(--accent);
+}
+
+/* Main Content Area */
+.content-area {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* Left Panel - Editor */
+.editor-frame {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  position: relative;
+  background: var(--surface);
+}
+
+.editor-toolbar {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+}
+
+.code-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: hidden; /* Monaco handles its own scrolling */
+}
+
+/* Remove simple-editor specific overrides */
+.code-editor {
+  display: none;
+}
+
+/* Right Panel - Intelligence */
+.report-frame {
+  width: 450px;
+  background: var(--surface-raised);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.report-header {
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.report-header h2 {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+.health-badge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.health-value {
+  font-family: var(--font-mono);
+  font-size: 40px;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+}
+
+.health-status {
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.status-good { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+.status-average { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
+.status-bad { background: rgba(239, 68, 68, 0.1); color: var(--error); }
+
+.report-content {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text);
+}
+
+.report-content h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-bright);
+  margin-bottom: 12px;
+  margin-top: 32px;
+}
+
+.report-content p {
+  margin-bottom: 16px;
+}
+
+/* Status Bar */
+.status-bar {
+  height: 28px;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.status-left, .status-right {
+  display: flex;
+  gap: 20px;
+}
+
+/* Action Button */
+.scan-btn {
+  position: absolute;
+  bottom: 40px;
+  right: 40px;
+  height: 48px;
+  padding: 0 24px;
+  background: var(--primary);
+  color: var(--bg);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  z-index: 100;
+}
+
+.scan-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+}
+
+.scan-btn:disabled {
+  background: var(--surface-overlay);
+  color: var(--text-dim);
+  cursor: wait;
+}
+
+/* Animations */
+.typing::after {
+  content: '_';
+  animation: blink 0.8s infinite;
+  color: var(--accent);
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+@media (max-width: 1024px) {
+  .report-frame {
+    width: 350px;
   }
-  100% {
-    transform: rotate(360deg);
-  }
 }
 
-.back-btn {
-  background-color: #ff4747;
-  color: white;
-  display: none; /* Hidden by default */
-}
-
-.back-btn:hover {
-  background-color: #d63c3c;
-}
-
-/* ======= MOBILE VIEW (≤ 768px) ======= */
 @media (max-width: 768px) {
-  main {
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .left, .right {
-    width: 95%; /* Increased width for better visibility */
-    min-height: 80vh; /* Increased height for better readability */
-    padding: 2rem; /* More padding for comfortable viewing */
-  }
-
-  /* Hide AI Review initially */
-  main .right {
-    display: none;
-  }
-
-  /* Show only the AI review when in review mode */
-  main.mobile-review-mode .left {
-    display: none;
-  }
-
-  main.mobile-review-mode .right {
-    display: block;
-  }
-
-  /* Show "Back to Editor" button only in mobile review mode */
-  main.mobile-review-mode .back-btn {
-    display: block;
-  }
+  .sidebar { display: none; }
+  .report-frame { display: none; }
 }
+
+
