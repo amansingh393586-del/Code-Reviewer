@@ -53,6 +53,9 @@ const languageMap = {
   cpp: { ext: "cpp", icon: "" },
 };
 
+const PRIMARY_BACKEND = import.meta.env.VITE_BACKEND_URL;
+const LOCAL_BACKEND = "http://localhost:3000";
+
 function App() {
   const [code, setCode] = useState(`// The Architect - Code Reviewer\n// Precision Analysis for Modern Developers\n\ndef add_numbers(a, b):\n    return a + b`);
   const [review, setReview] = useState("");
@@ -81,14 +84,30 @@ function App() {
   }, [review]);
 
   async function reviewCode() {
+    setLoading(true);
+    setReview("");
+    
+    const targetUrl = PRIMARY_BACKEND || LOCAL_BACKEND;
+    
     try {
-      setLoading(true);
-      const result = await axios.post("http://localhost:3000/ai/get-review", { code });
+      console.log(`[Primary] Connecting to: ${targetUrl}`);
+      const result = await axios.post(`${targetUrl}/ai/get-review`, { code });
       setReview(result.data);
       setScore(calculateHealthScore(result.data));
-    } catch (error) {
-      console.error("Error:", error);
-      setReview("⚠️ Error: Connection to Intelligence Service failed.");
+    } catch (primaryError) {
+      console.warn("Primary backend unreachable, attempting local fallback...");
+      
+      try {
+        if (targetUrl === LOCAL_BACKEND) throw primaryError; 
+
+        console.log(`[Fallback] Connecting to: ${LOCAL_BACKEND}`);
+        const result = await axios.post(`${LOCAL_BACKEND}/ai/get-review`, { code });
+        setReview(result.data);
+        setScore(calculateHealthScore(result.data));
+      } catch (fallbackError) {
+        console.error("System Error: All backends unreachable.");
+        setReview("⚠️ Error: Backend Service Unavailable. Please check your connection.");
+      }
     } finally {
       setLoading(false);
     }
